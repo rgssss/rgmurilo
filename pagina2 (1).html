@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Carteira</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Carteira" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f2f2f7;
+      --white: #ffffff;
+      --text-primary: #000000;
+      --text-secondary: #6c6c70;
+      --text-tertiary: #8e8e93;
+      --separator: #c6c6c8;
+      --qr-blue-bg: #e8f0ff;
+      --qr-blue-text: #1c4fd8;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: manipulation;
+      overscroll-behavior: none;
+      overflow: hidden;
+    }
+
+    .bg {
+      position: fixed;
+      inset: 0;
+      background-image: url('pagina2.jpeg');
+      background-repeat: no-repeat;
+      background-position: center top;
+      background-size: cover;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .screen {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .segment-bar {
+      position: absolute;
+      top: 6.5dvh;
+      left: 0;
+      width: 100%;
+      height: 8.5dvh;
+      min-height: 52px;
+      background: #ffffff;
+      display: flex;
+      border-top: 0.5px solid rgba(0,0,0,0.08);
+      border-bottom: 0.5px solid rgba(0,0,0,0.08);
+      overflow: hidden;
+      z-index: 2;
+    }
+
+    .seg-tab {
+      flex: 1;
+      text-align: center;
+      height: 100%;
+      padding: 0 4px;
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
+      letter-spacing: -0.1px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .seg-tab.active {
+      color: #0A3D91; /* azul escuro */
+      font-weight: 600;
+      border-bottom-color: #0A3D91;
+      background: #ffffff;
+    }
+
+    .content-area {
+      position: absolute;
+      left: 0;
+      top: 10.5dvh;
+      width: 100%;
+      height: 76.5dvh;
+      overflow: hidden;
+      background: transparent;
+      z-index: 1;
+    }
+
+    .carousel-outer {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    .carousel-track {
+      display: flex;
+      height: 100%;
+      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+      will-change: transform;
+    }
+
+    .carousel-slide {
+      flex-shrink: 0;
+      width: 100vw;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0px 0px;
+    }
+
+    .card-img {
+      max-width: 100%;
+      max-height: 90%;
+      width: auto;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15), 0 1px 4px rgba(0,0,0,0.1);
+      display: block;
+      object-fit: contain;
+      background: #dde2ea;
+      min-height: 180px;
+      min-width: 200px;
+    }
+
+    .qr-slide-inner {
+  width: 100%;
+  max-width: 90vw; /* ou 100% se quiser máximo */
+}
+
+    .qr-box {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .qr-image {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1; /* mantém quadrado */
+  border-radius: 8px;
+  object-fit: contain;
+  background: #eee;
+}
+
+    .qr-timer-bar {
+      width: 100%;
+      height: 3px;
+      background: #e0e0e0;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .qr-timer-fill {
+      height: 100%;
+      background: var(--text-primary);
+      border-radius: 2px;
+      transition: width 1s linear;
+    }
+
+    .qr-timer-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 400;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .qr-info {
+      background: var(--qr-blue-bg);
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .qr-info-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      color: var(--qr-blue-text);
+    }
+
+    .qr-info-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--qr-blue-text);
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .qr-info-text {
+      font-size: 13px;
+      color: var(--qr-blue-text);
+      line-height: 1.4;
+    }
+
+    .timestamp-bar {
+      position: absolute;
+      top: 81.2dvh;
+      left: 0;
+      width: 100%;
+      height: 8dvh;
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 16px;
+      text-align: center;
+      font-size: 14.5px;
+      color: var(--text-secondary);
+      background: var(--bg);
+      z-index: 2;
+    }
+
+    .landscape-lock {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: var(--bg);
+      color: var(--text-primary);
+      text-align: center;
+      font-size: 24px;
+      line-height: 1.4;
+      font-weight: 600;
+    }
+
+    .landscape-lock span {
+      max-width: 280px;
+    }
+
+    @media screen and (orientation: landscape) {
+      .screen { display: none; }
+      .landscape-lock { display: flex; }
+    }
+    #btn-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  height: 4dvh;
+  width: 15%;
+
+  background: transparent;
+  border: none;
+
+  z-index: 9999;
+}
+  </style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true"></div>
+  <button id="btn-back"></button>
+  <div class="landscape-lock" aria-live="polite"><span>Gire o aparelho para a vertical para usar a carteira.</span></div>
+
+  <div class="screen" role="main" aria-label="Carteira">
+    <div class="segment-bar" id="segment-bar">
+      <div class="seg-tab active" data-index="0">Frente</div>
+      <div class="seg-tab" data-index="1">Verso</div>
+      <div class="seg-tab" data-index="2">QR Code</div>
+    </div>
+
+    <div class="content-area">
+      <div class="carousel-outer" id="carousel-outer">
+        <div class="carousel-track" id="carousel-track">
+          <div class="carousel-slide">
+            <img class="card-img" src="frente.jpeg" alt="Frente da carteirinha" draggable="false" />
+          </div>
+
+          <div class="carousel-slide">
+            <img class="card-img" src="verso.jpeg" alt="Verso da carteirinha" draggable="false" />
+          </div>
+
+          <div class="carousel-slide">
+            <div class="qr-slide-inner">
+              <div class="qr-box">
+                <img class="qr-image" src="qrcode.jpeg" alt="QR Code" draggable="false" />
+                <div class="qr-timer-bar">
+                  <div class="qr-timer-fill" id="qr-fill" style="width:0%"></div>
+                </div>
+                <div class="qr-timer-text" id="qr-timer">00 : 59</div>
+              </div>
+              <div class="qr-info">
+                <div class="qr-info-icon">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <div class="qr-info-text">Utilize esse QR Code para validar os dados da carteira.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="timestamp-bar">
+      Última atualização em: <span id="auth-timestamp">carregando...</span>
+    </div>
+  </div>
+
+  <script>
+    function two(n) { return n < 10 ? '0' + n : '' + n; }
+
+    function buildTimestamp(d) {
+      return two(d.getDate()) + '/' + two(d.getMonth() + 1) + '/' + String(d.getFullYear()).slice(-2) + ' - ' + two(d.getHours()) + ':' + two(d.getMinutes());
+    }
+
+    function setAuthTimestamp() {
+      var el = document.getElementById('auth-timestamp');
+      if (el) el.textContent = buildTimestamp(new Date());
+    }
+
+    function enforcePortrait() {
+      if (screen.orientation && typeof screen.orientation.lock === 'function') {
+        screen.orientation.lock('portrait').catch(function () {});
+      }
+    }
+    window.addEventListener('load', enforcePortrait);
+    window.addEventListener('orientationchange', enforcePortrait);
+
+    const track = document.getElementById('carousel-track');
+    const tabs = document.querySelectorAll('.seg-tab');
+    const outer = document.getElementById('carousel-outer');
+    let current = 0;
+    const N = 3;
+
+    function goTo(index, animate) {
+      if (animate === false) track.style.transition = 'none';
+      else track.style.transition = 'transform 0.32s cubic-bezier(0.4,0,0.2,1)';
+
+      current = Math.max(0, Math.min(N - 1, index));
+      track.style.transform = 'translateX(-' + (current * 100) + 'vw)';
+      tabs.forEach(function (t, i) { t.classList.toggle('active', i === current); });
+      if (current === 2) startQrTimer();
+    }
+
+    tabs.forEach(function (t) {
+      t.addEventListener('click', function () {
+        goTo(parseInt(t.dataset.index, 10));
+      });
+    });
+
+    let tx = null, ty = null, dragging = false;
+    outer.addEventListener('touchstart', function (e) {
+      tx = e.touches[0].clientX;
+      ty = e.touches[0].clientY;
+      dragging = false;
+    }, { passive: true });
+
+    outer.addEventListener('touchmove', function (e) {
+      if (tx === null) return;
+      const dx = e.touches[0].clientX - tx;
+      const dy = e.touches[0].clientY - ty;
+      if (!dragging && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 8) dragging = true;
+    }, { passive: true });
+
+    outer.addEventListener('touchend', function (e) {
+      if (!dragging || tx === null) { tx = null; return; }
+      const dx = e.changedTouches[0].clientX - tx;
+      if (dx < -50) goTo(current + 1);
+      else if (dx > 50) goTo(current - 1);
+      tx = null;
+      dragging = false;
+    }, { passive: true });
+
+    let qrInterval = null;
+    let qrSeconds = 59;
+
+    function startQrTimer() {
+      if (qrInterval) return;
+      qrSeconds = 59;
+      updateQrDisplay();
+      qrInterval = setInterval(function () {
+        qrSeconds--;
+        if (qrSeconds < 0) qrSeconds = 59;
+        updateQrDisplay();
+      }, 1000);
+    }
+
+    function updateQrDisplay() {
+      const fill = document.getElementById('qr-fill');
+      const timer = document.getElementById('qr-timer');
+      if (fill) fill.style.width = ((59 - qrSeconds) / 59 * 100) + '%';
+      if (timer) timer.textContent = '00 : ' + two(qrSeconds);
+    }
+
+    window.addEventListener('load', function () {
+      setAuthTimestamp();
+      goTo(0, false);
+    });
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    }
+    document.getElementById('btn-back').addEventListener('click', function () {
+  window.location.href = 'index.html';
+});
+  </script>
+</body>
+</html>
